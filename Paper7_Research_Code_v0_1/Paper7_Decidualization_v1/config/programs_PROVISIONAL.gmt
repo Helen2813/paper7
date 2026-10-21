@@ -1,0 +1,16 @@
+# EXPLORATORY candidate gene groups for technical pipeline testing; NOT a pre-registered or validated MSigDB/Reactome gene-set resource.
+DECIDUAL_MARKERS	Provisional decidualization marker panel	PRL	IGFBP1	FOXO1	WNT4	LEFTY2	HAND2	HOXA10
+PROGESTERONE_AXIS	Provisional progesterone signaling genes	PGR	FKBP5	SGK1	IHH	HAND2	HOXA10	FOXO1
+BMP_SMAD	Provisional BMP-SMAD genes	BMP2	BMP4	BMP6	BMPR1A	BMPR2	SMAD1	SMAD5	SMAD4	ID1	ID2	ID3
+RETINOID_RESPONSE	Provisional retinoid signaling panel	RARA	RXRA	RARB	ALDH1A1	ALDH1A2	ALDH1L1	RORB	CRABP2
+IRON_HOMEOSTASIS	Provisional iron signaling panel	TFRC	SLC40A1	FTH1	FTL	SLC11A2	HAMP
+STROMAL_ECM	Provisional stromal ECM remodeling panel	COL1A1	COL1A2	COL3A1	MMP2	MMP9	TIMP1	DCN	FN1	LUM
+INFLAMMATORY	Provisional immune/inflammatory response panel	IL6	CXCL8	CXCL12	STAT3	NFKB1	PTGS2	CCL2
+SENESCENCE_SASP	Provisional senescence/SASP panel	CDKN1A	CDKN2A	SERPINE1	IL6	CXCL8	MMP3	DIO2
+OXIDATIVE_STRESS	Provisional oxidative stress panel	HMOX1	NQO1	GPX1	SOD2	GCLC	GCLM	NFE2L2
+CELL_CYCLE	Provisional proliferation panel	MKI67	PCNA	TOP2A	CCNB1	CDK1	MCM2	MCM5	BIRC5
+HYPOXIA	Provisional hypoxia panel	HIF1A	VEGFA	CA9	LDHA	SLC2A1	PDK1	EGLN1
+TGF_BETA	Provisional TGF-beta signaling panel	TGFB1	TGFB2	TGFBR1	TGFBR2	SMAD2	SMAD3	SERPINE1	CTGF
+PI3K_AKT	Provisional PI3K-AKT panel	AKT1	AKT2	PIK3CA	PIK3R1	MTOR	PTEN	FOXO1	GSK3B
+STEM_CELL_MARKERS	Provisional endometrial stem/stromal markers	CD44	SUSD2	THY1	MCAM	NT5E	SOX2	KLF4
+RECEPTIVITY	Provisional endometrial receptivity panel	PAEP	SPP1	LIF	HOXA10	HOXA11	MUC1	ITGAV	ITGB3

@@ -1,0 +1,3 @@
+THIS IS SIMULATED DATA ONLY. No claims about endometriosis or real GEO cohorts.
+The reference curve is known (oracle): these results can overstate real-data performance.
+Shape residual is not equivalent to molecular rewiring.
