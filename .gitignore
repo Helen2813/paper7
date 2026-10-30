@@ -231,3 +231,24 @@ data/
 __pycache__/
 .pytest_cache/
 *.pyc
+
+# Paper 7 publication safety
+/data/
+/data_external/
+/geo_results/
+/.venv/
+__pycache__/
+*.h5ad
+*.rds
+*.fastq
+*.bam
+*.tar
+*.gz
+*.zip
+*.xlsx
+*.xls
+*.env
+*.pem
+*.key
+**/run_*/
+**/console_summary.txt

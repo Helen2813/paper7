@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 410">
+<rect width="1020" height="410" fill="white"/>
+<text x="28" y="36" font-size="22" font-family="Arial" font-weight="bold">Paper 7 v29 | Conditional simulation decisions</text>
+<text x="230" y="95" font-family="Arial" font-size="12" text-anchor="middle">No delay</text>
+<rect x="166" y="118" width="128" height="57" rx="6" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="230" y="152" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">4.8%</text>
+<rect x="166" y="196" width="128" height="57" rx="6" fill="#bae6fd" stroke="#94a3b8"/>
+<text x="230" y="230" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">5.2%</text>
+<rect x="166" y="274" width="128" height="57" rx="6" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="230" y="308" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">2.8%</text>
+<text x="420" y="95" font-family="Arial" font-size="12" text-anchor="middle">1-day delay</text>
+<rect x="356" y="118" width="128" height="57" rx="6" fill="#7dd3fc" stroke="#94a3b8"/>
+<text x="420" y="152" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">30.8%</text>
+<rect x="356" y="196" width="128" height="57" rx="6" fill="#7dd3fc" stroke="#94a3b8"/>
+<text x="420" y="230" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">30.4%</text>
+<rect x="356" y="274" width="128" height="57" rx="6" fill="#7dd3fc" stroke="#94a3b8"/>
+<text x="420" y="308" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">28.0%</text>
+<text x="610" y="95" font-family="Arial" font-size="12" text-anchor="middle">Shape change</text>
+<rect x="546" y="118" width="128" height="57" rx="6" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="610" y="152" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">0.8%</text>
+<rect x="546" y="196" width="128" height="57" rx="6" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="610" y="230" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">1.2%</text>
+<rect x="546" y="274" width="128" height="57" rx="6" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="610" y="308" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">0.0%</text>
+<text x="800" y="95" font-family="Arial" font-size="12" text-anchor="middle">Delay + shape</text>
+<rect x="736" y="118" width="128" height="57" rx="6" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="800" y="152" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">3.6%</text>
+<rect x="736" y="196" width="128" height="57" rx="6" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="800" y="230" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">2.0%</text>
+<rect x="736" y="274" width="128" height="57" rx="6" fill="#e0f2fe" stroke="#94a3b8"/>
+<text x="800" y="308" font-family="Arial" font-weight="bold" font-size="19" text-anchor="middle">1.2%</text>
+<text x="24" y="152" font-family="Arial" font-size="13">Single reference</text>
+<text x="24" y="230" font-family="Arial" font-size="13">Reference ensemble</text>
+<text x="24" y="308" font-family="Arial" font-size="13">Ensemble + stability</text>
+<text x="28" y="384" font-family="Arial" font-size="12">Synthetic decision frequencies only.</text>
+</svg>

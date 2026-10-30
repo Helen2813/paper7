@@ -1,0 +1,3 @@
+﻿panel,n_N_units,n_E_units,overlapping_folds,amp_heldout_sse,amp_delay_heldout_sse,relative_SSE_gain_percent,delay_wins,amplitude_wins,ties,median_training_delay_days
+all8_external_orientation,4,4,16,15.847765960696679,17.803544032077408,-12.341033280218582,2,6,8,0.125
+six_external_concordant_sensitivity,4,4,16,22.439895739207127,25.094054590982225,-11.827857324389141,0,5,11,0.0
