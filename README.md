@@ -25,7 +25,7 @@ See [Reproducibility](reproducibility/README.md).
 
 ## OnsetAudit prototype
 
-Open `onsetaudit/index.html` locally in a browser.
+Run the local application: `bash launch_onsetaudit.sh`. See `onsetaudit/README.md`.
 
 The first version inspects metadata only.
 It does not predict biological onset.

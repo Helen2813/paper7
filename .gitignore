@@ -278,3 +278,5 @@ pycache/
 /onsetaudit/_generated/
 /data/
 /paper7_*/
+
+/.venv-onsetaudit/
