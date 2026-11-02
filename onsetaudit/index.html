@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OnsetAudit — Metadata QC</title>
+<style>
+body {
+  margin:0;background:#f4f7fb;color:#1b334e;
+  font:16px system-ui,sans-serif
+}
+header {
+  background:#173c60;color:#fff;
+  padding:22px 8%;font-size:24px
+}
+main {max-width:900px;margin:32px auto;padding:0 20px}
+.card {
+  background:white;padding:24px;margin:18px 0;
+  border:1px solid #dce5ef;border-radius:14px
+}
+p {line-height:1.55;color:#5d738b}
+h1 {font-size:30px}
+button {
+  background:#174b75;color:#fff;border:0;
+  border-radius:8px;padding:12px;cursor:pointer
+}
+pre {
+  white-space:pre-wrap;line-height:1.6;
+  font-family:inherit
+}
+table {border-collapse:collapse;width:100%}
+td,th {
+  padding:9px;text-align:left;
+  border-bottom:1px solid #dce5ef
+}
+</style>
+
+<header><b>OnsetAudit</b> / research prototype</header>
+<main>
+<h1>Experimental design inspector</h1>
+
+<p>
+Load a sample metadata CSV or TSV. Everything runs locally
+in your browser. No file is uploaded to a server.
+This prototype does not infer exposure duration or biological onset.
+</p>
+
+<div class="card">
+  <input type="file" id="input" accept=".csv,.tsv,.txt">
+  <pre id="message">
+Choose metadata with columns such as drug, timepoint, replicate.
+  </pre>
+  <button id="export" disabled>Download JSON report</button>
+</div>
+
+<div class="card">
+  <h2>Time × treatment table</h2>
+  <div id="table">No data loaded.</div>
+</div>
+
+<div class="card">
+  <h2>Scope</h2>
+  <p>
+  Metadata QC is not model validation.
+  Replicate labels alone do not prove batch independence.
+  No statistical coverage or biological onset is claimed.
+  </p>
+</div>
+</main>
+
+<script>
+const input=document.getElementById('input');
+const message=document.getElementById('message');
+const view=document.getElementById('table');
+const button=document.getElementById('export');
+let report=null;
+
+function csv(text,sep){
+  let out=[],row=[],cell='',q=false;
+  for(let i=0;i<text.length;i++){
+    let c=text[i];
+    if(c==='"'){
+      if(q&&text[i+1]==='"'){cell+='"';i++}
+      else q=!q;
+    }else if(c===sep&&!q){
+      row.push(cell);cell='';
+    }else if((c==='\n'||c==='\r')&&!q){
+      if(c==='\r'&&text[i+1]==='\n')i++;
+      row.push(cell);
+      if(row.some(x=>x.trim()))out.push(row);
+      row=[];cell='';
+    }else cell+=c;
+  }
+  if(q)throw Error('Unclosed CSV quote');
+  row.push(cell);
+  if(row.some(x=>x.trim()))out.push(row);
+  return out;
+}
+
+const norm=s=>String(s).trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+const find=(h,words)=>h.findIndex(x=>words.includes(norm(x)));
+
+input.onchange=async()=>{
+  try{
+    const file=input.files[0];
+    if(!file)return;
+    if(file.size>25000000)throw Error('Metadata exceeds 25 MB');
+
+    const text=(await file.text()).replace(/^\uFEFF/,'');
+    const first=text.split(/\r?\n/,1)[0];
+    const sep=first.includes('\t')?'\t':
+      first.split(';').length>first.split(',').length?';':',';
+
+    const rows=csv(text,sep),h=rows.shift();
+    if(!h||!rows.length)throw Error('Empty metadata');
+    if(rows.some(r=>r.length!==h.length))
+      throw Error('Inconsistent row widths');
+
+    const t=find(h,['time','timepoint','hours','timehours',
+                    'duration','exposurehours']);
+    const d=find(h,['drug','treatment','condition','group']);
+    const s=find(h,['sampleid','samplecolumnname','gsm','sample']);
+
+    const counts=new Map(),ids=new Set();
+    let duplicates=0,controls=0;
+
+    for(const r of rows){
+      const time=t<0?'?':r[t];
+      const drug=d<0?'?':r[d];
+      const key=JSON.stringify([time,drug]);
+
+      counts.set(key,(counts.get(key)||0)+1);
+
+      if(/^(dmso|vehicle|control|untreated)$/i.test(drug.trim()))
+        controls++;
+
+      if(s>=0){
+        if(ids.has(r[s]))duplicates++;
+        ids.add(r[s]);
+      }
+    }
+
+    const warnings=[];
+    if(t<0)warnings.push('No time column');
+    if(d<0)warnings.push('No treatment column');
+    if(!controls)warnings.push('No recognized vehicle controls');
+    if(duplicates)warnings.push(duplicates+' duplicate sample IDs');
+
+    report={
+      filename:file.name,
+      n_samples:rows.length,
+      n_time_treatment_groups:counts.size,
+      n_controls:controls,
+      warnings,
+      algorithm_validation:false
+    };
+
+    message.textContent=
+      `${rows.length} samples, ${counts.size} time × treatment groups, `+
+      `${controls} controls.\n`+
+      (warnings.length?warnings.join('\n'):
+       'Metadata review passed; prediction validity NOT established.');
+
+    const tbl=document.createElement('table');
+    const head=document.createElement('tr');
+
+    for(const text of ['Time','Treatment','Samples']){
+      const th=document.createElement('th');
+      th.textContent=text;
+      head.append(th);
+    }
+    tbl.append(head);
+
+    for(const [key,n] of counts){
+      const tr=document.createElement('tr');
+      for(const x of [...JSON.parse(key),n]){
+        const td=document.createElement('td');
+        td.textContent=x;
+        tr.append(td);
+      }
+      tbl.append(tr);
+    }
+    view.replaceChildren(tbl);
+    button.disabled=false;
+
+  }catch(e){
+    report=null;
+    button.disabled=true;
+    message.textContent='Not evaluable: '+e.message;
+  }
+};
+
+button.onclick=()=>{
+  if(!report)return;
+  const url=URL.createObjectURL(
+    new Blob([JSON.stringify(report,null,2)],
+    {type:'application/json'})
+  );
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='onsetaudit_metadata_qc.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+</script>
+</html>

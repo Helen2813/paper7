@@ -272,3 +272,9 @@ pycache/
 .npz
 .h5ad
 *.partial
+
+# Paper7 reproducibility artifacts
+/reproducibility/_generated/
+/onsetaudit/_generated/
+/data/
+/paper7_*/
