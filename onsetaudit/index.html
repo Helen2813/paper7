@@ -1,205 +1,469 @@
 <!doctype html>
 <html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OnsetAudit — Metadata QC</title>
+<meta name="color-scheme" content="light dark">
+<title>OnsetAudit — Transcriptomic Timing Workspace</title>
 <style>
-body {
-  margin:0;background:#f4f7fb;color:#1b334e;
-  font:16px system-ui,sans-serif
+:root{
+  --ink:#1b2740;--muted:#748099;--subtle:#94a0b3;
+  --bg:#f4f6fb;--card:#fff;--edge:#e4e9f2;
+  --soft:#f8faff;--purple:#5657d8;--violet:#7b5ce6;
+  --green:#168b77;--greenbg:#e6f7ef;--amber:#b97425;
+  --amberbg:#fff5e4;--red:#d54a65;--redbg:#fff0f3;
+  --shadow:0 10px 32px rgba(24,40,80,.042)
 }
-header {
-  background:#173c60;color:#fff;
-  padding:22px 8%;font-size:24px
+:root[data-theme="dark"]{
+  --ink:#eff2fd;--muted:#a9b4cc;--subtle:#7d8bad;
+  --bg:#0d1526;--card:#17233b;--edge:#2a3a55;
+  --soft:#1c2944;--purple:#9998ff;--violet:#aa8aff;
+  --green:#6bd7bc;--greenbg:#193d3a;--amber:#ffca89;
+  --amberbg:#443321;--red:#ff94a6;--redbg:#452832;
+  --shadow:0 10px 32px rgba(0,0,0,.12)
 }
-main {max-width:900px;margin:32px auto;padding:0 20px}
-.card {
-  background:white;padding:24px;margin:18px 0;
-  border:1px solid #dce5ef;border-radius:14px
-}
-p {line-height:1.55;color:#5d738b}
-h1 {font-size:30px}
-button {
-  background:#174b75;color:#fff;border:0;
-  border-radius:8px;padding:12px;cursor:pointer
-}
-pre {
-  white-space:pre-wrap;line-height:1.6;
-  font-family:inherit
-}
-table {border-collapse:collapse;width:100%}
-td,th {
-  padding:9px;text-align:left;
-  border-bottom:1px solid #dce5ef
-}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid #9ca3fa;outline-offset:3px}
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.sidebar{background:#111a31;color:#bec8df;height:100vh;position:sticky;top:0;display:flex;flex-direction:column;padding:28px 17px 18px;z-index:30}
+.brand{display:flex;align-items:center;gap:12px;padding:0 10px 36px;color:white}
+.mark{height:37px;width:37px;border-radius:12px;background:linear-gradient(140deg,#8078ff,#31b7ad);display:grid;place-items:center;box-shadow:0 6px 20px rgba(103,91,228,.35)}
+.mark svg{width:27px;height:27px}
+.brand strong{font-size:17px;letter-spacing:-.5px}
+.brand small{display:block;color:#8191b3;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-top:1px;font-weight:700}
+.navlabel{color:#697998;font-size:10px;letter-spacing:2.4px;font-weight:800;margin:0 12px 12px}
+.nav{display:grid;gap:5px}
+.nav button{border:0;width:100%;text-align:left;border-radius:10px;background:transparent;color:#9eaac5;padding:12px 14px;display:flex;align-items:center;gap:13px;transition:.16s;font-weight:580}
+.nav button:hover{background:#202b49;color:white}
+.nav button.active{background:linear-gradient(100deg,rgba(108,108,242,.26),rgba(100,110,209,.06));color:white;box-shadow:inset 3px 0 0 #8d8aff}
+.navicon{font-size:17px;width:21px;text-align:center;color:#91a0c5}
+.nav .active .navicon{color:#aaa8ff}
+.side-bottom{margin-top:auto;border-top:1px solid #29334c;padding:20px 9px 3px}
+.secure{display:flex;align-items:center;gap:9px;color:#b2e5d6;font-size:12px;font-weight:700}
+.secure-dot{width:8px;height:8px;border-radius:50%;background:#50d4b5;box-shadow:0 0 0 4px #1f3d45}
+.side-caption{color:#7886a7;font-size:11px;line-height:1.65;margin:11px 0 0}
+.work{min-width:0}
+.topbar{min-height:79px;padding:19px 34px;background:var(--card);border-bottom:1px solid var(--edge);display:flex;justify-content:space-between;align-items:center;gap:14px}
+.crumb{color:var(--muted);font-size:12px;letter-spacing:.1px}
+.crumb strong{color:var(--ink);font-weight:760}
+.actionbar{display:flex;align-items:center;gap:10px}
+.btn{border:1px solid var(--edge);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 15px;font-size:12px;font-weight:750;min-height:38px;display:inline-flex;justify-content:center;align-items:center;gap:8px;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:#a8a9ff;background:var(--soft)}
+.btn.primary{background:#625ee6;border-color:#625ee6;color:#fff;box-shadow:0 7px 18px rgba(82,77,210,.14)}
+.btn.primary:hover:not(:disabled){background:#504cce}
+.btn:disabled{cursor:not-allowed;opacity:.44}
+.btn.icononly{width:38px;padding:0;font-size:18px}
+.container{max-width:1450px;margin:0 auto;padding:31px 34px 55px}
+.section{scroll-margin-top:24px;margin-bottom:28px}
+.hero{background:linear-gradient(122deg,#202957,#323875 55%,#5456ad);color:#fff;border-radius:18px;position:relative;overflow:hidden;min-height:240px;padding:35px 38px;display:flex;align-items:center;box-shadow:0 18px 40px rgba(32,39,89,.12)}
+.hero:before{content:"";position:absolute;top:-205px;right:-160px;width:600px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(141,150,255,.32),transparent 67%)}
+.hero:after{content:"";position:absolute;bottom:-150px;right:75px;width:350px;height:320px;border:1px solid rgba(255,255,255,.14);border-radius:50%}
+.hero-content{position:relative;z-index:2;max-width:590px}
+.eyebrow{font-size:10px;letter-spacing:2.2px;font-weight:850;text-transform:uppercase;color:#a9b8ff;display:flex;align-items:center;gap:9px}
+.eyebrow:before{content:"";display:block;width:18px;height:2px;background:#55d9c4}
+h1{font-weight:770;letter-spacing:-1.4px;font-size:34px;line-height:1.13;margin:14px 0}
+.hero p{font-size:14px;color:#c6d0f5;max-width:520px;line-height:1.8;margin:0}
+.hero-visual{position:absolute;z-index:1;right:19px;top:18px;width:360px;height:214px;opacity:.94}
+.breadcrumb-mini{display:flex;align-items:center;gap:7px;margin-top:24px;color:#c1cef3;font-size:11px}
+.breadcrumb-mini span{display:inline-flex;align-items:center;gap:7px;border:1px solid #7883bf75;background:#ffffff0e;border-radius:5px;padding:5px 10px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin:19px 0 29px}
+.metric,.panel{border:1px solid var(--edge);background:var(--card);border-radius:15px;box-shadow:var(--shadow)}
+.metric{padding:20px 21px;min-height:120px}
+.metric-head{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:11px;font-weight:720}
+.metric-icon{border-radius:10px;padding:6px 8px;background:var(--soft);color:var(--purple);font-size:17px}
+.metric-value{font-size:31px;letter-spacing:-1.3px;font-weight:800;line-height:1.2;margin:9px 0 4px}
+.metric-note{font-size:11px;color:var(--muted)}
+.section-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:0 0 16px}
+.section-heading h2{font-size:17px;letter-spacing:-.5px;margin:0}
+.section-heading p{color:var(--muted);font-size:12px;margin:3px 0 0}
+.tag{display:inline-flex;align-items:center;gap:6px;border-radius:6px;background:var(--soft);color:var(--muted);font-size:10px;letter-spacing:.6px;font-weight:800;padding:7px 9px;white-space:nowrap}
+.tag.demo{background:#fff0d2;color:#91641b}
+.status-tag{background:var(--greenbg);color:var(--green)}
+.content-grid{display:grid;grid-template-columns:minmax(0,1.28fr) minmax(300px,.72fr);gap:16px}
+.panel{padding:22px;min-width:0}
+.panel-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.panel h3{margin:0;font-size:14px;font-weight:800;letter-spacing:-.2px}
+.panel .hint{font-size:11px;color:var(--muted)}
+.dropzone{border:1.5px dashed #bdc9e6;border-radius:13px;padding:30px 16px;min-height:196px;display:grid;justify-items:center;align-content:center;text-align:center;background:linear-gradient(135deg,var(--soft),var(--card));transition:.2s}
+.dropzone.dragging{border-color:#756dee;background:rgba(117,109,238,.1);transform:scale(1.005)}
+.dropicon{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:#efedff;color:#645ee8;font-size:24px;margin-bottom:12px}
+.dropzone strong{font-size:14px}
+.dropzone .small{color:var(--muted);margin-top:5px;font-size:11px}
+.dropzone label{margin-top:15px}
+#fileInput{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.fileinfo{display:flex;align-items:center;gap:12px;padding:12px 13px;background:var(--soft);border-radius:9px;margin-top:13px;font-size:11px;color:var(--muted);min-height:44px}
+.fileinfo strong{color:var(--ink)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--edge);font-size:12px}
+.kv:last-of-type{border-bottom:0}
+.kv span{color:var(--muted)}
+.kv strong{font-weight:800;word-break:break-word;text-align:right}
+.notice{border-left:3px solid #7b79ef;background:var(--soft);padding:12px 13px;color:var(--muted);border-radius:0 8px 8px 0;font-size:11px;line-height:1.6;margin-top:15px}
+.design-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.65fr);gap:16px}
+.table-scroll{overflow:auto;max-height:460px}
+table{border-collapse:collapse;width:100%;font-size:11px;text-align:left;white-space:nowrap}
+th{color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.45px;background:var(--soft);position:sticky;top:0;z-index:1}
+th,td{border-bottom:1px solid var(--edge);padding:11px 13px}
+td:first-child{font-weight:730}
+td.timecell{text-align:center;font-variant-numeric:tabular-nums}
+.control-txt{color:var(--green);font-weight:800}
+.empty{min-height:198px;display:flex;justify-content:center;align-items:center;flex-direction:column;color:var(--muted);text-align:center;gap:9px}
+.empty .empty-icon{font-size:35px;color:#b3bfd7}
+.empty strong{color:var(--ink);font-size:13px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:164px;border-bottom:1px solid var(--edge);padding:17px 4px 0;margin:6px 0 13px}
+.bar-group{height:100%;display:flex;flex:1;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;min-width:0}
+.bar{width:min(36px,80%);background:linear-gradient(180deg,#7772e8,#4abcb8);border-radius:7px 7px 1px 1px;min-height:3px;transition:.18s}
+.bar-label{color:var(--muted);font-weight:700;font-size:10px;position:relative;top:17px}
+.bar-count{font-size:10px;font-weight:800;color:var(--ink)}
+.bars-under{margin-top:37px;font-size:11px;color:var(--muted)}
+.quality-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.quality{border:1px solid var(--edge);border-radius:13px;padding:19px;background:var(--card)}
+.quality-icon{font-size:21px;margin-bottom:11px}
+.quality h3{font-size:13px;margin:0 0 7px}
+.quality p{font-size:11px;color:var(--muted);line-height:1.65;min-height:45px;margin:0}
+.q-status{font-size:10px;font-weight:850;letter-spacing:1.1px;display:inline-block;margin-top:14px}
+.q-status.good{color:var(--green)}
+.q-status.warn{color:var(--amber)}
+.q-status.neutral{color:var(--muted)}
+.audit{margin-top:14px;border:1px solid var(--edge);border-radius:12px;padding:14px;background:var(--card)}
+.audit-title{display:flex;gap:9px;align-items:center;font-weight:800;font-size:12px}
+.audit-list{margin:11px 0 0;padding-left:21px;color:var(--muted);font-size:11px;line-height:1.8}
+.audit-list li{margin-bottom:3px}
+.research-boundary{display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center;border:1px solid var(--edge);border-radius:15px;background:var(--card);padding:22px}
+.research-boundary h3{margin:0 0 7px;font-size:14px}
+.research-boundary p{max-width:680px;margin:0;font-size:11px;color:var(--muted);line-height:1.8}
+.footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;border-top:1px solid var(--edge);padding-top:20px;font-size:11px;color:var(--muted);margin-top:34px}
+@media(max-width:1150px){.hero-visual{opacity:.32}.hero-content{max-width:100%}.content-grid,.design-layout{grid-template-columns:1fr}.quality-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:850px){.shell{display:block}.sidebar{height:auto;position:relative;padding:14px 20px}.brand{padding:0 0 13px}.nav{display:flex;overflow:auto}.nav button{min-width:140px}.navlabel,.side-bottom{display:none}.topbar{padding:14px 17px}.container{padding:18px 15px 40px}.metrics{grid-template-columns:repeat(2,1fr)}.quality-grid{grid-template-columns:1fr}.hero{padding:28px 24px;min-height:220px}.hero h1{font-size:29px}}
+@media(max-width:490px){.topbar{align-items:flex-start;flex-direction:column}.metrics{gap:9px}.metric{padding:16px}.metric-value{font-size:27px}.hero h1{font-size:26px}.panel{padding:16px}.research-boundary{grid-template-columns:1fr}.actionbar{width:100%}.actionbar button{flex:1}.crumb{font-size:11px}}
 </style>
-
-<header><b>OnsetAudit</b> / research prototype</header>
-<main>
-<h1>Experimental design inspector</h1>
-
-<p>
-Load a sample metadata CSV or TSV. Everything runs locally
-in your browser. No file is uploaded to a server.
-This prototype does not infer exposure duration or biological onset.
-</p>
-
-<div class="card">
-  <input type="file" id="input" accept=".csv,.tsv,.txt">
-  <pre id="message">
-Choose metadata with columns such as drug, timepoint, replicate.
-  </pre>
-  <button id="export" disabled>Download JSON report</button>
-</div>
-
-<div class="card">
-  <h2>Time × treatment table</h2>
-  <div id="table">No data loaded.</div>
-</div>
-
-<div class="card">
-  <h2>Scope</h2>
-  <p>
-  Metadata QC is not model validation.
-  Replicate labels alone do not prove batch independence.
-  No statistical coverage or biological onset is claimed.
-  </p>
-</div>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand"><div class="mark" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none"><path d="M4 16c4-10 6 10 10 0s6-10 10 0" stroke="white" stroke-width="2.5" stroke-linecap="round"/><circle cx="23.5" cy="16" r="2.5" fill="#a6fff3"/></svg></div><div><strong>OnsetAudit</strong><small>Research workspace</small></div></div>
+  <div class="navlabel">WORKSPACE</div>
+  <nav class="nav" aria-label="Sections">
+    <button class="active" data-scroll="overview"><span class="navicon">◈</span>Overview</button>
+    <button data-scroll="import"><span class="navicon">↥</span>Import &amp; QC</button>
+    <button data-scroll="design"><span class="navicon">▦</span>Experimental design</button>
+    <button data-scroll="quality"><span class="navicon">⌁</span>Evidence checks</button>
+    <button data-scroll="report"><span class="navicon">▤</span>Report &amp; export</button>
+  </nav>
+  <div class="side-bottom"><div class="secure"><i class="secure-dot"></i>Local-first analysis</div><div class="side-caption">Source files stay in your browser.<br>Interface prototype · v0.2</div></div>
+</aside>
+<div class="work">
+<header class="topbar">
+  <div class="crumb">Workspace <span style="padding:0 9px;opacity:.4">/</span> <strong>Paper 7 · Timing audit</strong></div>
+  <div class="actionbar">
+    <button id="themeButton" class="btn icononly" title="Toggle appearance" aria-label="Toggle appearance">◐</button>
+    <button id="demoButton" class="btn">◇&nbsp; Load demo</button>
+    <button id="topExport" class="btn primary" disabled>↓&nbsp; Export report</button>
+  </div>
+</header>
+<main class="container">
+  <section id="overview" class="section">
+    <div class="hero">
+      <div class="hero-content">
+        <div class="eyebrow">Transcriptomic time-series laboratory</div>
+        <h1>Evidence before<br>inference.</h1>
+        <p>Inspect temporal RNA-seq experiment design, verify controls and sample coverage, and document what your data can—and cannot—support.</p>
+        <div class="breadcrumb-mini"><span>● Research preview</span><span>○ Timing model not enabled</span></div>
+      </div>
+      <svg class="hero-visual" viewBox="0 0 380 230" fill="none" aria-hidden="true">
+        <g stroke="#97a0eb" stroke-opacity=".24" stroke-width="1"><path d="M0 35H380M0 75H380M0 115H380M0 155H380M0 195H380"/><path d="M45 0V230M95 0V230M145 0V230M195 0V230M245 0V230M295 0V230M345 0V230"/></g>
+        <path d="M4 175C40 174 49 168 73 164S119 142 141 122 173 61 199 76 235 154 271 132 315 55 377 36" stroke="#5de0d2" stroke-width="3" stroke-linecap="round"/>
+        <path d="M4 186C48 188 67 181 93 168S146 155 169 151 219 112 248 106 319 75 377 84" stroke="#c2b0ff" stroke-width="2.5" stroke-linecap="round"/>
+        <g fill="#e1fbf9" stroke="#40bcae" stroke-width="2"><circle cx="73" cy="164" r="5"/><circle cx="141" cy="122" r="5"/><circle cx="199" cy="76" r="5"/><circle cx="271" cy="132" r="5"/></g>
+      </svg>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-head">SAMPLES <span class="metric-icon">▤</span></div><div class="metric-value" id="metricSamples">—</div><div class="metric-note">Recorded sample entries</div></div>
+      <div class="metric"><div class="metric-head">TREATMENTS <span class="metric-icon">✣</span></div><div class="metric-value" id="metricTreatments">—</div><div class="metric-note">Distinct experimental conditions</div></div>
+      <div class="metric"><div class="metric-head">TIMEPOINTS <span class="metric-icon">◷</span></div><div class="metric-value" id="metricTimes">—</div><div class="metric-note">Observed temporal positions</div></div>
+      <div class="metric"><div class="metric-head">VEHICLE CONTROLS <span class="metric-icon">◇</span></div><div class="metric-value" id="metricControls">—</div><div class="metric-note">DMSO / vehicle / untreated</div></div>
+    </div>
+  </section>
+  <section id="import" class="section">
+    <div class="section-heading"><div><h2>Data import &amp; validation</h2><p>Start with a metadata CSV or TSV. Expression matrices are not processed in this preview.</p></div><span id="datasetTag" class="tag">NO DATA LOADED</span></div>
+    <div class="content-grid">
+      <div class="panel">
+        <div class="panel-h"><h3>Import sample metadata</h3><span class="hint">LOCAL ONLY · ≤10 MB</span></div>
+        <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Choose or drop a metadata file">
+          <div class="dropicon">↥</div><strong>Drop your sample sheet here</strong>
+          <div class="small">CSV or TSV · columns such as sample, drug, timepoint, replicate, library</div>
+          <label class="btn primary" for="fileInput">Browse files <span aria-hidden="true">↗</span></label>
+          <input id="fileInput" type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values">
+        </div>
+        <div class="fileinfo" id="fileInfo" role="status"><span style="font-size:19px">▧</span><span id="fileText">No dataset selected</span><button id="clearButton" class="btn" style="margin-left:auto;display:none" aria-label="Reset imported data">Reset</button></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Input health</h3><span id="inputHealth" class="tag">AWAITING FILE</span></div>
+        <div class="kv"><span>Format</span><strong id="infoFormat">—</strong></div>
+        <div class="kv"><span>Sample ID mapping</span><strong id="infoIds">—</strong></div>
+        <div class="kv"><span>Replicate labels</span><strong id="infoReplicates">—</strong></div>
+        <div class="kv"><span>Library / batch groups</span><strong id="infoLibraries">—</strong></div>
+        <div class="notice">Sample labels and replication structure are checked for consistency. Independent biological batches cannot be confirmed from metadata labels alone.</div>
+      </div>
+    </div>
+  </section>
+  <section id="design" class="section">
+    <div class="section-heading"><div><h2>Experimental design</h2><p>Visualize observed coverage rather than inferring missing timepoints.</p></div><span class="tag">OBSERVED RECORDS ONLY</span></div>
+    <div class="design-layout">
+      <div class="panel"><div class="panel-h"><h3>Treatment × time coverage</h3><span class="hint">Cell values = sample counts</span></div><div class="table-scroll" id="matrixView"><div class="empty"><span class="empty-icon">▦</span><strong>No design matrix yet</strong><span>Load a sample sheet to see coverage.</span></div></div></div>
+      <div class="panel"><div class="panel-h"><h3>Temporal distribution</h3><span class="hint">Samples per timepoint</span></div><div id="barsView"><div class="empty"><span class="empty-icon">⌁</span><strong>Awaiting time labels</strong><span>Time distributions appear here.</span></div></div></div>
+    </div>
+  </section>
+  <section id="quality" class="section">
+    <div class="section-heading"><div><h2>Evidence &amp; design checks</h2><p>Transparent warnings before any biological inference.</p></div><span class="tag">STRUCTURAL QC</span></div>
+    <div class="quality-grid">
+      <div class="quality"><div class="quality-icon">▤</div><h3>Sample schema</h3><p id="qSchema">Awaiting metadata columns and sample identifiers.</p><div id="qSchemaTag" class="q-status neutral">NOT RUN</div></div>
+      <div class="quality"><div class="quality-icon">◇</div><h3>Vehicle coverage</h3><p id="qControls">Verify DMSO or untreated reference at observed active timepoints.</p><div id="qControlsTag" class="q-status neutral">NOT RUN</div></div>
+      <div class="quality"><div class="quality-icon">⌘</div><h3>Replication</h3><p id="qReps">Check replicate and library labels. Independence requires external verification.</p><div id="qRepsTag" class="q-status neutral">NOT RUN</div></div>
+    </div>
+    <div class="audit"><div class="audit-title"><span style="color:var(--violet)">◉</span> Audit trail <span class="hint" style="margin-left:auto" id="auditCounter">0 findings</span></div><ul id="auditList" class="audit-list"><li>No metadata analyzed yet.</li></ul></div>
+  </section>
+  <section id="report" class="section">
+    <div class="section-heading"><div><h2>Report &amp; inference boundary</h2><p>Export machine-readable design QC without uploading your data.</p></div><span class="tag status-tag">NO CLOUD CONNECTION</span></div>
+    <div class="research-boundary"><div><h3>Timing prediction is not enabled in this preview</h3><p>The current interface performs metadata and experimental-design quality checks only. It does not estimate exposure duration, infer transcriptional onset, compute confidence sets, or validate a biomarker. The V120 research algorithm remains experimental until its deployment requirements and external evaluation are complete.</p></div><button class="btn" id="reportExport" disabled>↓ Export QC JSON</button></div>
+  </section>
+  <footer class="footer"><span>OnsetAudit 0.2 · Paper 7 · Local research prototype</span><span>Evidence-first by design · No clinical use</span></footer>
 </main>
-
+</div>
+</div>
 <script>
-const input=document.getElementById('input');
-const message=document.getElementById('message');
-const view=document.getElementById('table');
-const button=document.getElementById('export');
-let report=null;
+'use strict';
+const $=id=>document.getElementById(id);
+const statusEls=['metricSamples','metricTreatments','metricTimes','metricControls'];
+let current=null;
+let activeSource='none';
 
-function csv(text,sep){
-  let out=[],row=[],cell='',q=false;
+for(const b of document.querySelectorAll('[data-scroll]')){
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-scroll]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    $(b.dataset.scroll).scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+$('themeButton').addEventListener('click',()=>{
+  document.documentElement.dataset.theme = document.documentElement.dataset.theme==='dark'?'light':'dark';
+});
+
+function parseDelimited(text,delimiter){
+  const result=[];let row=[],cell='',quoted=false;
   for(let i=0;i<text.length;i++){
-    let c=text[i];
+    const c=text[i];
     if(c==='"'){
-      if(q&&text[i+1]==='"'){cell+='"';i++}
-      else q=!q;
-    }else if(c===sep&&!q){
-      row.push(cell);cell='';
-    }else if((c==='\n'||c==='\r')&&!q){
+      if(quoted && text[i+1]==='"'){cell+='"';i++;}
+      else quoted=!quoted;
+    }else if(c===delimiter && !quoted){row.push(cell);cell='';}
+    else if((c==='\n'||c==='\r')&&!quoted){
       if(c==='\r'&&text[i+1]==='\n')i++;
       row.push(cell);
-      if(row.some(x=>x.trim()))out.push(row);
+      if(row.some(v=>v.trim()))result.push(row);
       row=[];cell='';
     }else cell+=c;
   }
-  if(q)throw Error('Unclosed CSV quote');
+  if(quoted)throw Error('Unclosed quote in metadata file.');
   row.push(cell);
-  if(row.some(x=>x.trim()))out.push(row);
-  return out;
+  if(row.some(v=>v.trim()))result.push(row);
+  return result;
 }
+function inferDelimiter(text){
+  const line=text.split(/\r?\n/,1)[0];
+  const counts=[',','\t',';'].map(sep=>({sep,n:line.split(sep).length-1}));
+  counts.sort((a,b)=>b.n-a.n);
+  return counts[0].n?counts[0].sep:',';
+}
+function norm(s){return String(s??'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');}
+function findColumn(h,aliases){return h.findIndex(v=>aliases.includes(norm(v)));}
+function parsedTime(value){
+  const s=String(value??'').trim().toLowerCase();
+  if(s==='baseline'||s==='pre'||s==='t0')return 0;
+  const match=s.match(/^t?\s*(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hours)?$/);
+  return match?Number(match[1]):null;
+}
+function labelTime(t){return Number.isFinite(t)?`${t}h`:'Unknown';}
+function isControl(s){return /^(dmso|vehicle|control|untreated|negativecontrol|no(drug|treatment))$/.test(norm(s));}
+function makeText(tag,txt,cls){const el=document.createElement(tag);el.textContent=String(txt);if(cls)el.className=cls;return el;}
+function setQuality(base,text,state){$(base).textContent=text;const b=$(base+'Tag');b.textContent=state;b.className='q-status '+(state==='CHECKED'?'good':state==='REVIEW'?'warn':'neutral');}
 
-const norm=s=>String(s).trim().toLowerCase().replace(/[^a-z0-9]/g,'');
-const find=(h,words)=>h.findIndex(x=>words.includes(norm(x)));
-
-input.onchange=async()=>{
-  try{
-    const file=input.files[0];
-    if(!file)return;
-    if(file.size>25000000)throw Error('Metadata exceeds 25 MB');
-
-    const text=(await file.text()).replace(/^\uFEFF/,'');
-    const first=text.split(/\r?\n/,1)[0];
-    const sep=first.includes('\t')?'\t':
-      first.split(';').length>first.split(',').length?';':',';
-
-    const rows=csv(text,sep),h=rows.shift();
-    if(!h||!rows.length)throw Error('Empty metadata');
-    if(rows.some(r=>r.length!==h.length))
-      throw Error('Inconsistent row widths');
-
-    const t=find(h,['time','timepoint','hours','timehours',
-                    'duration','exposurehours']);
-    const d=find(h,['drug','treatment','condition','group']);
-    const s=find(h,['sampleid','samplecolumnname','gsm','sample']);
-
-    const counts=new Map(),ids=new Set();
-    let duplicates=0,controls=0;
-
-    for(const r of rows){
-      const time=t<0?'?':r[t];
-      const drug=d<0?'?':r[d];
-      const key=JSON.stringify([time,drug]);
-
-      counts.set(key,(counts.get(key)||0)+1);
-
-      if(/^(dmso|vehicle|control|untreated)$/i.test(drug.trim()))
-        controls++;
-
-      if(s>=0){
-        if(ids.has(r[s]))duplicates++;
-        ids.add(r[s]);
-      }
-    }
-
-    const warnings=[];
-    if(t<0)warnings.push('No time column');
-    if(d<0)warnings.push('No treatment column');
-    if(!controls)warnings.push('No recognized vehicle controls');
-    if(duplicates)warnings.push(duplicates+' duplicate sample IDs');
-
-    report={
-      filename:file.name,
-      n_samples:rows.length,
-      n_time_treatment_groups:counts.size,
-      n_controls:controls,
-      warnings,
-      algorithm_validation:false
-    };
-
-    message.textContent=
-      `${rows.length} samples, ${counts.size} time × treatment groups, `+
-      `${controls} controls.\n`+
-      (warnings.length?warnings.join('\n'):
-       'Metadata review passed; prediction validity NOT established.');
-
-    const tbl=document.createElement('table');
-    const head=document.createElement('tr');
-
-    for(const text of ['Time','Treatment','Samples']){
-      const th=document.createElement('th');
-      th.textContent=text;
-      head.append(th);
-    }
-    tbl.append(head);
-
-    for(const [key,n] of counts){
-      const tr=document.createElement('tr');
-      for(const x of [...JSON.parse(key),n]){
-        const td=document.createElement('td');
-        td.textContent=x;
-        tr.append(td);
-      }
-      tbl.append(tr);
-    }
-    view.replaceChildren(tbl);
-    button.disabled=false;
-
-  }catch(e){
-    report=null;
-    button.disabled=true;
-    message.textContent='Not evaluable: '+e.message;
+function analyze(text,name,bytes,isDemo=false){
+  if(bytes>10*1024*1024)throw Error('This preview accepts metadata files up to 10 MB. RNA-seq expression matrices are not supported here.');
+  const separator=inferDelimiter(text);const input=parseDelimited(text.replace(/^\uFEFF/,''),separator);
+  if(input.length<2)throw Error('No sample entries found.');
+  const header=input.shift().map(v=>v.trim());
+  if(header.length<2)throw Error('Metadata must contain at least two columns.');
+  if(input.some((r,i)=>r.length!==header.length))throw Error('Unequal row widths. Confirm the delimiter or quotation marks.');
+  if(input.length>15000)throw Error('Metadata has too many rows for this prototype (limit 15,000).');
+  const c={
+    sample:findColumn(header,['sample','sampleid','samplecolumnname','gsm','libraryid','sampleidentifier']),
+    treatment:findColumn(header,['drug','treatment','condition','compound','group','perturbation']),
+    time:findColumn(header,['timepoint','time','duration','hours','exposurehours','timehours']),
+    replicate:findColumn(header,['replicate','replicatelabel','biologicalreplicate','biorep','rep']),
+    library:findColumn(header,['library','batch','experiment','sequencingbatch','plate'])
+  };
+  const entries=input.map((r,index)=>({
+    index:index+1,id:c.sample<0?`row_${index+1}`:r[c.sample].trim(),
+    treatment:c.treatment<0?'Unknown':r[c.treatment].trim()||'Unknown',
+    rawTime:c.time<0?'':r[c.time].trim(),
+    time:c.time<0?null:parsedTime(r[c.time]),
+    replicate:c.replicate<0?'':r[c.replicate].trim(),
+    library:c.library<0?'':r[c.library].trim()
+  }));
+  const nonemptyIds=entries.map(x=>x.id).filter(Boolean);
+  const idDuplicates=nonemptyIds.length-new Set(nonemptyIds).size;
+  const unknownTimes=entries.filter(x=>x.time===null).length;
+  const times=[...new Set(entries.filter(x=>x.time!==null).map(x=>x.time))].sort((a,b)=>a-b);
+  const drugs=[...new Set(entries.map(x=>x.treatment))].sort((a,b)=>Number(isControl(b))-Number(isControl(a))||a.localeCompare(b));
+  const controls=entries.filter(x=>isControl(x.treatment));
+  const controlTimes=new Set(controls.filter(x=>x.time!==null).map(x=>x.time));
+  const activeTimes=[...new Set(entries.filter(x=>!isControl(x.treatment)&&x.time!==null).map(x=>x.time))];
+  const missingControlTimes=activeTimes.filter(t=>!controlTimes.has(t)).sort((a,b)=>a-b);
+  const groupSet=new Set(entries.map(x=>x.library).filter(Boolean));
+  const repSet=new Set(entries.map(x=>x.replicate).filter(Boolean));
+  const warnings=[];
+  if(c.sample<0)warnings.push('Sample ID column not found; row numbers are used for display only.');
+  if(c.treatment<0)warnings.push('Treatment/drug column not found.');
+  if(c.time<0)warnings.push('Timepoint column not found.');
+  if(nonemptyIds.length<entries.length)warnings.push(`${entries.length-nonemptyIds.length} sample identifiers are empty.`);
+  if(idDuplicates)warnings.push(`${idDuplicates} duplicate sample IDs detected.`);
+  if(unknownTimes)warnings.push(`${unknownTimes} time labels cannot be parsed as hours.`);
+  if(!controls.length)warnings.push('No DMSO/vehicle/untreated controls recognized.');
+  else if(missingControlTimes.length)warnings.push(`No time-matched control at: ${missingControlTimes.map(labelTime).join(', ')}.`);
+  if(c.replicate<0)warnings.push('Replicate column missing; biological independence cannot be assessed.');
+  else if(repSet.size<2)warnings.push('Fewer than two distinct replicate labels.');
+  if(c.library<0)warnings.push('Library/batch column missing; batch separation cannot be assessed.');
+  const map=new Map();const totalByTime=new Map();
+  for(const x of entries){
+    const key=JSON.stringify([x.treatment,x.time]);map.set(key,(map.get(key)||0)+1);
+    if(x.time!==null)totalByTime.set(x.time,(totalByTime.get(x.time)||0)+1);
   }
-};
-
-button.onclick=()=>{
-  if(!report)return;
-  const url=URL.createObjectURL(
-    new Blob([JSON.stringify(report,null,2)],
-    {type:'application/json'})
-  );
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='onsetaudit_metadata_qc.json';
-  a.click();
+  return {name,bytes,format:separator==='\t'?'TSV':separator===';'?'CSV (semicolon)':'CSV',
+    demo:isDemo,loadedUtc:new Date().toISOString(),header,columns:c,entries,drugs,times,controls,
+    counts:map,totalByTime,warnings,idDuplicates,unknownTimes,repSet,groupSet,missingControlTimes};
+}
+function renderTable(data){
+  const root=$('matrixView');root.replaceChildren();
+  if(!data.times.length){root.append(makeText('div','No parseable temporal labels were found.','empty'));return;}
+  const table=document.createElement('table');const thead=document.createElement('tr');
+  thead.append(makeText('th','Treatment / control'));
+  for(const t of data.times)thead.append(makeText('th',labelTime(t)));
+  thead.append(makeText('th','TOTAL'));
+  table.append(thead);
+  const max=Math.max(1,...data.counts.values());
+  for(const drug of data.drugs){
+    const tr=document.createElement('tr');const title=makeText('td',drug,isControl(drug)?'control-txt':'');tr.append(title);
+    let rowtotal=0;
+    for(const t of data.times){
+      const n=data.counts.get(JSON.stringify([drug,t]))||0;rowtotal+=n;
+      const td=makeText('td',n||'–','timecell');
+      if(n){td.style.background=`rgba(103,103,223,${.06+.22*(n/max)})`;td.style.fontWeight='800';}
+      td.title=`${drug} · ${labelTime(t)} · ${n} sample(s)`;tr.append(td);
+    }
+    tr.append(makeText('td',rowtotal));table.append(tr);
+  }
+  root.append(table);
+}
+function renderBars(data){
+  const root=$('barsView');root.replaceChildren();
+  if(!data.times.length){root.append(makeText('div','Time distribution unavailable.','empty'));return;}
+  const chart=makeText('div','','bars');chart.setAttribute('aria-label','Sample counts by timepoint');
+  const max=Math.max(1,...data.totalByTime.values());
+  for(const t of data.times){
+    const n=data.totalByTime.get(t)||0;const g=makeText('div','','bar-group');
+    g.append(makeText('span',n,'bar-count'));
+    const bar=makeText('div','','bar');bar.style.height=`${Math.max(3,105*n/max)}px`;
+    bar.title=`${labelTime(t)}: ${n} samples`;g.append(bar);
+    g.append(makeText('span',labelTime(t),'bar-label'));chart.append(g);
+  }
+  root.append(chart,makeText('div','Counts represent metadata records, not expression measurements.','bars-under'));
+}
+function render(data){
+  current=data;activeSource=data.demo?'demo':'file';
+  $('metricSamples').textContent=data.entries.length.toLocaleString();
+  $('metricTreatments').textContent=data.drugs.length;
+  $('metricTimes').textContent=data.times.length||'0';
+  $('metricControls').textContent=data.controls.length;
+  $('datasetTag').textContent=data.demo?'SYNTHETIC DEMO':data.warnings.length?'QC REVIEW REQUIRED':'METADATA LOADED';
+  $('datasetTag').className='tag '+(data.demo?'demo':data.warnings.length?'':'status-tag');
+  $('fileText').textContent=`${data.name} · ${(data.bytes/1024).toFixed(1)} KB${data.demo?' · SYNTHETIC DEMO':''}`;
+  $('clearButton').style.display='inline-flex';
+  $('inputHealth').textContent=data.warnings.length?'REVIEW':'SCHEMA CHECKED';
+  $('inputHealth').className='tag '+(data.warnings.length?'':'status-tag');
+  $('infoFormat').textContent=data.format;
+  $('infoIds').textContent=data.columns.sample<0?'Unavailable':`${data.entries.length-data.idDuplicates} unique / ${data.entries.length}`;
+  $('infoReplicates').textContent=data.columns.replicate<0?'Not supplied':`${data.repSet.size} labels`;
+  $('infoLibraries').textContent=data.columns.library<0?'Not supplied':`${data.groupSet.size} labels`;
+  renderTable(data);renderBars(data);
+  setQuality('qSchema',data.idDuplicates?`${data.idDuplicates} duplicate IDs require investigation.`:`${data.entries.length} records parsed. ${data.unknownTimes} unparseable time labels.`,data.columns.sample>=0&&data.columns.treatment>=0&&data.columns.time>=0&&!data.idDuplicates&&!data.unknownTimes?'CHECKED':'REVIEW');
+  setQuality('qControls',data.controls.length?`${data.controls.length} control records. ${data.missingControlTimes.length} active timepoints lack a time-matched control.`:'No DMSO, vehicle or untreated controls were identified.',data.controls.length&&!data.missingControlTimes.length?'CHECKED':'REVIEW');
+  setQuality('qReps',data.columns.replicate<0?'Replicate labels unavailable.':`${data.repSet.size} replicate labels; ${data.groupSet.size} library/batch labels. Independence not established.`,data.columns.replicate>=0&&data.repSet.size>=2?'CHECKED':'REVIEW');
+  const ul=$('auditList');ul.replaceChildren();const msgs=data.warnings.length?data.warnings:['No schema or matched-control warnings detected. This is not a biological validation.'];
+  for(const msg of msgs)ul.append(makeText('li',msg));
+  $('auditCounter').textContent=`${data.warnings.length} warning(s)`;
+  $('topExport').disabled=false;$('reportExport').disabled=false;
+  $('fileInfo').setAttribute('aria-label','Metadata loaded');
+}
+function reset(){
+  current=null;activeSource='none';$('fileInput').value='';
+  for(const id of statusEls)$(id).textContent='—';
+  $('datasetTag').textContent='NO DATA LOADED';$('datasetTag').className='tag';
+  $('fileText').textContent='No dataset selected';$('clearButton').style.display='none';
+  $('inputHealth').textContent='AWAITING FILE';$('inputHealth').className='tag';
+  for(const id of ['infoFormat','infoIds','infoReplicates','infoLibraries'])$(id).textContent='—';
+  $('matrixView').replaceChildren(makeText('div','No design matrix yet. Load a sample sheet.','empty'));
+  $('barsView').replaceChildren(makeText('div','Awaiting time labels.','empty'));
+  setQuality('qSchema','Awaiting metadata columns and sample identifiers.','NOT RUN');
+  setQuality('qControls','Verify DMSO or untreated controls at observed timepoints.','NOT RUN');
+  setQuality('qReps','Check replicate and library labels.','NOT RUN');
+  $('auditList').replaceChildren(makeText('li','No metadata analyzed yet.'));
+  $('auditCounter').textContent='0 findings';$('topExport').disabled=true;$('reportExport').disabled=true;
+}
+async function processFile(file){
+  if(!file)return;
+  try{const text=await file.text();render(analyze(text,file.name,file.size,false));}
+  catch(e){$('fileText').textContent='Not evaluable: '+e.message;console.warn('Metadata parse error:',e.message);}
+}
+$('fileInput').addEventListener('change',e=>processFile(e.target.files[0]));
+const dropzone=$('dropzone');
+dropzone.addEventListener('click',e=>{if(!e.target.closest('label'))$('fileInput').click();});
+dropzone.addEventListener('keydown',e=>{if(e.target===dropzone&&(e.key==='Enter'||e.key===' ')){e.preventDefault();$('fileInput').click();}});
+for(const ev of ['dragover','dragenter'])dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.add('dragging');});
+for(const ev of ['dragleave','drop'])dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.remove('dragging');});
+dropzone.addEventListener('drop',e=>processFile(e.dataTransfer.files[0]));
+$('clearButton').addEventListener('click',reset);
+$('demoButton').addEventListener('click',()=>{
+  const rows=[['sample_column_name','drug','timepoint','replicate','library']];let i=1;
+  for(const lib of ['BATCH_A','BATCH_B'])for(const d of ['DMSO','DRUG_A','DRUG_B'])for(const t of [0,3,6,9,12,24])for(const rep of [1,2]){
+    rows.push([`DEMO_${String(i++).padStart(3,'0')}`,d,`${t}h`,`rep_${rep}`,lib]);
+  }
+  const csv=rows.map(r=>r.join(',')).join('\n');render(analyze(csv,'synthetic_demo_metadata.csv',new Blob([csv]).size,true));
+});
+function exportReport(){
+  if(!current)return;
+  const r=current;
+  const rows=[...r.counts].map(([key,count])=>({treatment:JSON.parse(key)[0],time_hours:JSON.parse(key)[1],sample_count:count}));
+  const report={
+    title:'OnsetAudit metadata quality-control report',version:'0.2',generated_utc:new Date().toISOString(),
+    sample_source:r.demo?'SYNTHETIC_DEMO':'LOCAL_METADATA_FILE',filename:r.name,
+    input_format:r.format,samples:r.entries.length,treatments:r.drugs,
+    observed_timepoints_hours:r.times,recognized_control_samples:r.controls.length,
+    replicate_labels:[...r.repSet],batch_labels:[...r.groupSet],
+    warnings:r.warnings,design_counts:rows,
+    inference_performed:false,biological_onset_estimated:false,external_validation_performed:false,
+    note:'Structural metadata QC only. No RNA-seq model inference or statistical coverage claim.'
+  };
+  const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='onsetaudit_metadata_qc.json';document.body.append(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
-};
+}
+$('topExport').addEventListener('click',exportReport);
+$('reportExport').addEventListener('click',exportReport);
 </script>
+</body>
 </html>
