@@ -143,10 +143,19 @@ class Handler(BaseHTTPRequestHandler):
                             import pandas as pd
                             for key, fn in (('predictions','active_predictions.csv'),
                                             ('vehicle_predictions','vehicle_predictions.csv'),
-                                            ('folds','holdout_folds.csv')):
+                                            ('folds','holdout_folds.csv'),
+                                            ('vehicle_drug_predictions','vehicle_by_drug.csv')):
                                 table = evaluation.get(key, [])
                                 if table:
                                     z.writestr(fn, pd.DataFrame(table).to_csv(index=False))
+                            diagnostics = evaluation.get('v04_audit', {})
+                            for key, fn in (("by_drug", "v04_by_drug.csv"),
+                                            ("by_group", "v04_by_group.csv"),
+                                            ("by_time", "v04_by_time.csv"),
+                                            ("threshold_sweep", "v04_threshold_sweep_posthoc.csv")):
+                                rows = diagnostics.get(key, [])
+                                if rows:
+                                    z.writestr(fn, pd.DataFrame(rows).to_csv(index=False))
                         manifest = {'version': VERSION, 'generated_utc': stamp,
                                     'report_sha256': hashlib.sha256(report_data.encode('utf-8')).hexdigest()}
                         z.writestr('sha256_manifest.json', json.dumps(manifest, indent=2))

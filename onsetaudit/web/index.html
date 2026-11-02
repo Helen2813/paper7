@@ -27,7 +27,7 @@
     <button data-scroll="evidence"><span class="navicon">◇</span> Evidence</button>
     <button data-scroll="report"><span class="navicon">▤</span> Export</button>
   </nav>
-  <div class="side-bottom"><div class="secure"><i class="secure-dot"></i> Local-only processing</div><div class="side-caption">Data remain on this computer.<br>Research prototype · v0.3</div></div>
+  <div class="side-bottom"><div class="secure"><i class="secure-dot"></i> Local-only processing</div><div class="side-caption">Data remain on this computer.<br>Research prototype · v0.4</div></div>
 </aside>
 <div class="work">
 <header class="topbar">
@@ -81,7 +81,7 @@
  </section>
  <section class="section" id="report"><div class="section-heading"><div><h2>Reproducible export</h2><p>Provenance, source SHA256, settings, observations and prediction tables.</p></div><span class="tag good">LOCAL REPORT</span></div><div class="research-boundary"><div><h3>Research outputs, not clinical results</h3><p>Reports include normalized input type, raw-file SHA256, model parameters, heldout group assignments, sample-level predictions, warnings and an explicit nonclaim statement. No original expression matrix is embedded in the exported ZIP. The GUI never claims measured transcriptional onset.</p></div><button class="btn primary" id="exportBottom" disabled>↓ Download report ZIP</button></div>
  </section>
- <footer class="footer"><span>OnsetAudit 0.3 · Paper 7 · Local research tool</span><span>Evidence-first by design · Not for clinical use</span></footer>
+ <footer class="footer"><span>OnsetAudit 0.4 · Paper 7 · Local research tool</span><span>Evidence-first by design · Not for clinical use</span></footer>
 </main></div></div>
 <script>
 'use strict';
@@ -142,11 +142,35 @@ function drawSVG(series){const root=$('genePlot');root.replaceChildren();const a
  const legend=$('geneLegend');legend.replaceChildren();series.forEach((s,i)=>{const span=text('span',s.drug+' (n='+s.points.reduce((sum,p)=>sum+p.n,0)+')');span.style.setProperty('--legend',COLORS[i%COLORS.length]);legend.append(span);});}
 async function drawGene(){if(!summary?.matrix_loaded)return;const gene=$('geneChoice').value;if(!gene)return;try{const r=await api('/api/curve?gene='+encodeURIComponent(gene));$('plotAxis').textContent=r.axis+' · '+gene;drawSVG(r.series);}catch(e){$('genePlot').textContent=e.message;}}
 async function audit(){try{const a=Number($('tauA').value),b=Number($('tauB').value);const r=await api('/api/design?earlier='+a+'&later='+b);$('onsetAudit').textContent=`STATUS: ${r.status}\nObserved: ${r.observed_times_h.map(h).join(', ')} h\nBetween ${a} and ${b} h: ${r.between_onsets_h.length?r.between_onsets_h.join(', ')+' h':'NO MEASUREMENTS'}\n${r.note}`;}catch(e){$('onsetAudit').textContent='NOT EVALUABLE: '+e.message;}}
+function renderV04Audit(root,r){
+  const a=r.v04_audit;if(!a)return;
+  const wrap=text('div','','panel');wrap.style.marginTop='18px';
+  const heading=text('h3','v0.4 · Negative-control audit');wrap.append(heading);
+  const status=text('p','DESCRIPTIVE ONLY · Frozen v0.3 gate margin > 0 · Not calibrated.','hint');status.style.margin='7px 0 14px';wrap.append(status);
+  const stats=text('div','','modelstats');
+  for(const [name,value] of [['Vehicle false-positive samples',a.vehicle_false_positive_samples_any_drug+'/'+a.n_vehicle_samples],['False-positive drug calls',a.vehicle_false_positive_drug_calls+'/'+a.n_vehicle_drug_comparisons]]){
+    const card=text('div','','modelstat');card.append(text('strong',value),text('small',name));stats.append(card);
+  }
+  wrap.append(stats);
+  const makeTable=(headers,rows)=>{const sc=text('div','','table-scroll');sc.style.marginTop='12px';const t=document.createElement('table');const head=document.createElement('tr');headers.forEach(x=>head.append(text('th',x)));t.append(head);for(const arr of rows){const tr=document.createElement('tr');arr.forEach(x=>tr.append(text('td',x)));t.append(tr);}sc.append(t);return sc;};
+  const byDrug=a.by_drug||[];
+  wrap.append(text('h4','DMSO rejection by drug · held-out experiments'));
+  wrap.append(makeTable(['Drug','Controls','False calls','Control FPR','Active correct'],byDrug.map(x=>[x.drug,x.control_n,x.false_active_calls,x.control_n?(100*x.false_active_calls/x.control_n).toFixed(1)+'%':'—',x.duration_correct+'/'+x.active_n])));
+  const fp=(r.vehicle_drug_predictions||[]).filter(x=>x.accepted_as_active);
+  wrap.append(text('h4','Which control samples triggered a drug program?'));
+  if(fp.length){wrap.append(makeTable(['DMSO sample','Held-out group','Time h','Drug program','Gate margin'],fp.map(x=>[x.sample,x.group,x.time,x.drug,Number(x.gate_margin).toFixed(4)])));}
+  else{wrap.append(text('p','No positive DMSO-by-drug calls in this evaluation.','hint'));}
+  wrap.append(text('h4','Threshold sensitivity · retrospective, not calibrated'));
+  wrap.append(makeTable(['Margin threshold','Active accepted','Correct + accepted','DMSO rejected'],(a.threshold_sweep||[]).map(x=>[(x.is_frozen_v03_gate?'FROZEN ':'')+x.threshold,x.active_accepted+'/'+x.active_n,x.correct_and_accepted+'/'+x.active_n,x.vehicle_rejected_any_drug+'/'+x.vehicle_n])));
+  const caution=text('div','Do not choose a threshold from this table: the same held-out samples are used here for descriptive sensitivity. This is NOT independent calibration, an onset-time measurement, or evidence of 95% specificity.','notice');wrap.append(caution);
+  root.append(wrap);
+}
+
 function viewResult(r){const root=$('modelResults');root.replaceChildren();const n=r.n_active;const rows=[['Correct + accepted',r.correct_and_accepted,n],['Active detected',r.active_accepted,n],['Duration correct',r.correct_duration_without_gate,n],['Vehicle rejected',r.vehicle_rejected,r.n_vehicle]];
  const grid=text('div','','modelstats');for(const [label,value,total] of rows){const el=text('div','','modelstat');el.append(text('strong',value+'/'+total),text('small',label+' · '+(total?(100*value/total).toFixed(1):0)+'%'));grid.append(el);}root.append(grid);
  const note=text('div',`STATUS: ${r.status}. ${r.groups.length} group(s); ${r.drugs_evaluated.length} drug(s). The target is exposure duration. Confidence sets and true molecular onsets were NOT validated.`,'well');note.style.marginTop='14px';root.append(note);
  const preview=text('div','','table-scroll');preview.style.marginTop='14px';const t=document.createElement('table');const heads=['Sample','Batch','Treatment','True h','Predicted h','Gate','Correct'];const tr=document.createElement('tr');heads.forEach(x=>tr.append(text('th',x)));t.append(tr);
- for(const p of r.preview_active.slice(0,20)){const tr=document.createElement('tr');for(const v of [p.sample,p.group,p.drug,p.true_hours,p.predicted_hours,p.accepted_active?'Accepted':'Rejected',p.correct_and_accepted?'Yes':'No'])tr.append(text('td',v));t.append(tr);}preview.append(t);root.append(preview);$('viewPredictions').disabled=false;}
+ for(const p of r.preview_active.slice(0,20)){const tr=document.createElement('tr');for(const v of [p.sample,p.group,p.drug,p.true_hours,p.predicted_hours,p.accepted_active?'Accepted':'Rejected',p.correct_and_accepted?'Yes':'No'])tr.append(text('td',v));t.append(tr);}preview.append(t);root.append(preview);renderV04Audit(root,r);$('viewPredictions').disabled=false;}
 async function evaluate(){if(!summary?.model_available){showMessage('Load a valid matrix first','error');return;}const btn=$('evaluate');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Evaluating…';$('evaluationStatus').textContent='Training-only gene selection, grouped holdout and non-circular controls; this may take a moment.';
  try{const r=await api('/api/evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});currentModel=r;viewResult(r);$('evaluationStatus').textContent='Completed. Status: '+r.status+' — exploratory, not confirmatory validation.';showMessage('Grouped holdout completed; export the report for full sample-level predictions.','success');}
  catch(e){$('evaluationStatus').textContent='NOT EVALUABLE: '+e.message;showMessage('Model blocked: '+e.message,'error');}

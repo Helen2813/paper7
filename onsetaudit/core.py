@@ -20,8 +20,9 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from v04_audit import build_v04_audit
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 MAX_DECOMPRESSED = 320 * 1024 * 1024
 MAX_GENES = 70000
 MAX_SAMPLES = 2000
@@ -386,7 +387,7 @@ class Dataset:
         if len(self.gene_ids) < TOP_GENES:
             raise ValueError("At least 200 gene rows are required by frozen V115 architecture")
         predictions = []
-        negative_source_calls: dict[int, list[bool]] = {}
+        negative_source_calls: dict[int, list[dict[str, Any]]] = {}
         folds = []
         for held in groups:
             for drug in selected:
@@ -463,13 +464,25 @@ class Dataset:
                         "gate_margin": margin, "n_training_replicate_pairs": len(units),
                     })
                 for i in test_controls:
-                    negative_source_calls.setdefault(i, []).append(scores(X[selected_genes, i])[0])
+                    neg_gate, neg_margin, _, _ = scores(X[selected_genes, i])
+                    negative_source_calls.setdefault(i, []).append({
+                        "drug": str(drug), "accepted_as_active": bool(neg_gate),
+                        "gate_margin": float(neg_margin),
+                    })
         negative = []
+        vehicle_drug_predictions = []
         for i, flags in negative_source_calls.items():
             row = meta.iloc[i]
+            for flag in flags:
+                vehicle_drug_predictions.append({
+                    "sample": str(row['sample']), "group": str(row['group']),
+                    "time": float(row['time']), **flag,
+                })
             negative.append({"sample": row['sample'], "group": row['group'],
-                             "time": float(row['time']), "false_active_any_drug": any(flags),
-                             "source_programs_checked": len(flags)})
+                             "time": float(row['time']),
+                             "false_active_any_drug": any(x['accepted_as_active'] for x in flags),
+                             "source_programs_checked": len(flags),
+                             "max_gate_margin": float(max(x['gate_margin'] for x in flags))})
         n = len(predictions)
         if n == 0 or not negative:
             raise ValueError("NOT EVALUABLE: no heldout predictions")
@@ -488,6 +501,11 @@ class Dataset:
             "folds": folds,
             "predictions": predictions,
             "vehicle_predictions": negative,
+            "vehicle_drug_predictions": vehicle_drug_predictions,
+            "v04_audit": build_v04_audit(
+                predictions, negative, vehicle_drug_predictions,
+                selected, groups, times,
+            ),
             "method": {"top_genes": TOP_GENES, "variance_floor": VAR_FLOOR, "ridge_per_gene": RIDGE,
                        "model": "V120 two-stage architecture, training-only vehicle pilot"},
             "limitations": [
