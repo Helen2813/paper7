@@ -252,3 +252,23 @@ __pycache__/
 *.key
 **/run_*/
 **/console_summary.txt
+
+# Integrated local Paper 7 ignore rules
+.venv/
+# downloaded GEO inputs - keep checksums in manifest.json instead
+**/inputs/*.gz
+**/inputs/*.dat
+**/inputs/*.txt
+# review bundles duplicate the run folders
+**/share/*.zip
+*.bak
+geo_results/figures/
+/results/
+/paper7_/
+/paper9_/
+/extension_triage*/
+pycache/
+.xlsx
+.npz
+.h5ad
+*.partial
