@@ -51,3 +51,11 @@ root to retain code hashes and historical dependencies.
 
 This repository is for research, not clinical decisions.
 Licensing and final manuscript citation are pending.
+
+## RECOMB 2027 — endometrial temporal identifiability manuscript
+
+The publication-specific code, input checksums, and exact reproduction steps for
+*Evaluating the Identifiability of Temporal Delay and Response Attenuation in
+Endometrial Decidualization* are in
+[`publication/recomb2027_paper7/README.md`](publication/recomb2027_paper7/README.md).
+This is distinct from the development OnsetAudit prototype.
